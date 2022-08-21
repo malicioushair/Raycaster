@@ -1,21 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
-#include <sstream>
+namespace {
+constexpr auto MAP_WIDTH = 24;
+constexpr auto MAP_HEIGHT = 24;
 
-#define mapWidth 24
-#define mapHeight 24
-
-std::string ConvertToString(int number)
-{
-	std::ostringstream buff;
-	buff << number;
-	return buff.str();
-}
-
-int worldMap[mapWidth][mapHeight] = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+int g_worldMap[MAP_WIDTH][MAP_HEIGHT] = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 									 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 									 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 									 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
@@ -40,14 +32,20 @@ int worldMap[mapWidth][mapHeight] = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
 									 {1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 									 {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
 
+}
+
 int main()
 {
 
-	int w = 1024, h = 576;
+	static constexpr auto w = 1024;
+	static constexpr auto h = 576;
 
-	double posX = 22, posY = 12; // x and y start position
-	double dirX = -1, dirY = 0; // initial direction vector
-	double planeX = 0, planeY = 0.66; // the 2d raycaster version of camera plane
+	auto posX = 22.0f;
+	auto posY = 12.0f; // x and y start position
+	auto dirX = -1.0f;
+	auto dirY = 0.0f; // initial direction vector
+	auto planeX = 0.0f;
+	auto planeY = 0.66f; // the 2d raycaster version of camera plane
 
 	//double time = 0; // time of current frame
 	//double oldTime = 0; // time of previous frame
@@ -56,14 +54,14 @@ int main()
 	sf::RenderWindow window(sf::VideoMode(w, h), "SFML window");
 
 	window.setFramerateLimit(60);
-	sf::Clock clock = sf::Clock();
+	auto clock = sf::Clock();
 	sf::Time fps;
 
 	// Start the game loop
 	while (window.isOpen())
 	{
 		// Process events
-		sf::Event event;
+		sf::Event event{};
 		while (window.pollEvent(event))
 		{
 			// Close window: exit
@@ -77,56 +75,39 @@ int main()
 
 		window.clear();
 
-		for (int x = 0; x < w; x++)
+		for (auto x = 0; x < w; x++)
 		{
 			// calculate ray position and direction
-			double cameraX = 2 * x / double(w) - 1; // x-coordinate in camera space
-			double rayPosX = posX;
-			double rayPosY = posY;
-			double rayDirX = dirX + planeX * cameraX;
-			double rayDirY = dirY + planeY * cameraX;
+			const auto cameraX = 2.0f * static_cast<float>(x) / w - 1; // x-coordinate in camera space
+			const auto rayPosX = posX;
+			const auto rayPosY = posY;
+			const auto rayDirX = dirX + planeX * cameraX;
+			const auto rayDirY = dirY + planeY * cameraX;
 
 			// which box of the map we're in
-			int mapX = int(rayPosX);
-			int mapY = int(rayPosY);
-
-			// length of ray from current position to next x or y-side
-			double sideDistX;
-			double sideDistY;
+			auto mapX = static_cast<int>(rayPosX);
+			auto mapY = static_cast<int>(rayPosY);
 
 			// length of ray from one x or y-side to next x or y-side
-			double deltaDistX = sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
-			double deltaDistY = sqrt(1 + (rayDirX * rayDirX) / (rayDirY * rayDirY));
-			double perpWallDist;
+			const auto deltaDistX = sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
+			const auto deltaDistY = sqrt(1 + (rayDirX * rayDirX) / (rayDirY * rayDirY));
 
 			// what direction to step in x or y-direction (either +1 or -1)
-			int stepX;
-			int stepY;
+			const auto stepX = rayDirX < 0 ? -1 : 1;
+			const auto stepY = rayDirY < 0 ? -1 : 1;
 
 			int hit = 0; // was there a wall hit?
 			int side = 0; // was a NS or a EW wall hit?
 
-			// calculate step and initial sideDist
-			if (rayDirX < 0)
-			{
-				stepX = -1;
-				sideDistX = (rayPosX - mapX) * deltaDistX;
-			}
-			else
-			{
-				stepX = 1;
-				sideDistX = (mapX + 1.0 - rayPosX) * deltaDistX;
-			}
-			if (rayDirY < 0)
-			{
-				stepY = -1;
-				sideDistY = (rayPosY - mapY) * deltaDistY;
-			}
-			else
-			{
-				stepY = 1;
-				sideDistY = (mapY + 1.0 - rayPosY) * deltaDistY;
-			}
+			// length of ray from current position to next x or y-side
+			auto sideDistX = rayDirX < 0
+				? (static_cast<double>(rayPosX) - static_cast<double>(mapX)) * static_cast<double>(deltaDistX)
+				: (static_cast<double>(mapX) + 1.0 - static_cast<double>(rayPosX)) * static_cast<double>(deltaDistX)
+			;
+			auto sideDistY = rayDirY < 0
+				? (static_cast<double>(rayPosY) - static_cast<double>(mapY)) * static_cast<double>(deltaDistY)
+				: (static_cast<double>(mapY) + 1.0 - static_cast<double>(rayPosY)) * static_cast<double>(deltaDistY)
+			;
 
 			// perform DDA
 			while (hit == 0)
@@ -134,29 +115,29 @@ int main()
 				// jump to next map square, OR in x-direction, OR in y-direction
 				if (sideDistX < sideDistY)
 				{
-					sideDistX += deltaDistX;
+					sideDistX += static_cast<double>(deltaDistX);
 					mapX += stepX;
 					side = 0;
 				}
 				else
 				{
-					sideDistY += deltaDistY;
+					sideDistY += static_cast<double>(deltaDistY);
 					mapY += stepY;
 					side = 1;
 				}
 				// Check if ray has hit a wall
-				if (worldMap[mapX][mapY] > 0)
+				if (g_worldMap[mapX][mapY] > 0)
 					hit = 1;
 			}
 
 			// Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
-			if (side == 0)
-				perpWallDist = fabs((mapX - rayPosX + (1 - stepX) / 2) / rayDirX);
-			else
-				perpWallDist = fabs((mapY - rayPosY + (1 - stepY) / 2) / rayDirY);
+			const auto perpWallDist = side == 0
+				? fabs((static_cast<double>(mapX) - static_cast<double>(rayPosX) + (1.0 - stepX) / 2) / static_cast<double>(rayDirX))
+				: fabs((static_cast<double>(mapY) - static_cast<double>(rayPosY) + (1.0 - stepY) / 2) / static_cast<double>(rayDirY))
+			;
 
 			// Calculate height of line to draw on screen
-			int lineHeight = abs(int(h / perpWallDist));
+			int lineHeight = abs(static_cast<int>(h / perpWallDist));
 
 			// calculate lowest and highest pixel to fill in current stripe
 			int drawStart = -lineHeight / 2 + h / 2;
@@ -168,7 +149,7 @@ int main()
 
 			// choose wall color
 			sf::Color color;
-			switch (worldMap[mapX][mapY])
+			switch (g_worldMap[mapX][mapY])
 			{
 			case 1:
 				color = sf::Color::Red;
@@ -205,41 +186,41 @@ int main()
 		//float fpsValue = 1000000 / fps.asMicroseconds();
 		clock.restart();
 
-		double moveSpeed = fps.asSeconds() * 5.0; // the constant value is in squares/second
-		double rotSpeed = fps.asSeconds() * 3.0; // the constant value is in radians/second
+		const auto moveSpeed = fps.asSeconds() * 5.0f; // the constant value is in squares/second
+		const auto rotSpeed = fps.asSeconds() * 3.0f; // the constant value is in radians/second
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 		{
 			// both camera direction and camera plane must be rotated
-			double oldDirX = dirX;
+			const auto oldDirX = dirX;
 			dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
 			dirY = oldDirX * sin(rotSpeed) + dirY * cos(rotSpeed);
-			double oldPlaneX = planeX;
+			const auto oldPlaneX = planeX;
 			planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
 			planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
 		}
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 		{
 			// both camera direction and camera plane must be rotated
-			double oldDirX = dirX;
+			const auto oldDirX = dirX;
 			dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
 			dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
-			double oldPlaneX = planeX;
+			const auto oldPlaneX = planeX;
 			planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
 			planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
 		}
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 		{
-			if (worldMap[int(posX + dirX * moveSpeed)][int(posY)] == false)
+			if (g_worldMap[static_cast<int>(posX + dirX * moveSpeed)][static_cast<int>(posY)] == false)
 				posX += dirX * moveSpeed;
-			if (worldMap[int(posX)][int(posY + dirY * moveSpeed)] == false)
+			if (g_worldMap[static_cast<int>(posX)][static_cast<int>(posY + dirY * moveSpeed)] == false)
 				posY += dirY * moveSpeed;
 		}
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 		{
-			if (worldMap[int(posX - dirX * moveSpeed)][int(posY)] == false)
+			if (g_worldMap[static_cast<int>(posX - dirX * moveSpeed)][static_cast<int>(posY)] == false)
 				posX -= dirX * moveSpeed;
-			if (worldMap[int(posX)][int(posY - dirY * moveSpeed)] == false)
+			if (g_worldMap[static_cast<int>(posX)][static_cast<int>(posY - dirY * moveSpeed)] == false)
 				posY -= dirY * moveSpeed;
 		}
 
