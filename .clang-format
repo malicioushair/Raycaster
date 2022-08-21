@@ -44,7 +44,7 @@ IndentWidth: 4
 MacroBlockBegin: ''
 MacroBlockEnd: ''
 MaxEmptyLinesToKeep: 2
-NamespaceIndentation: All
+NamespaceIndentation: None
 TabWidth: 4
 UseTab: Always
 ...
