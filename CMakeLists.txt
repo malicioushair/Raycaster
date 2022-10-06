@@ -21,7 +21,12 @@ conan_cmake_run(
      BUILD missing
 )
 
-add_executable(Raycaster src/main.cpp)
+file(GLOB SRC_FILES
+     "src/*.h"
+     "src/*.cpp"
+)
+
+add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/bin)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
