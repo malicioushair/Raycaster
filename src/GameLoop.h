@@ -14,12 +14,15 @@ public:
 
 private:
 	sf::RenderWindow m_window{sf::VideoMode(1024, 576), "SFML window"};
-	float m_posX = 22.0f;
-	float m_posY = 12.0f; // x and y start position
-	float m_dirX = -1.0f;
-	float m_dirY = 0.0f; // initial direction vector
-	float m_planeX = 0.0f;
-	float m_planeY = 0.66f; // the 2d raycaster version of camera plane
+	float m_posX {22.0f};
+	float m_posY {12.0f}; // x and y start position
+	float m_dirX {-1.0f};
+	float m_dirY {0.0f}; // initial direction vector
+	float m_planeX {0.0f};
+	float m_planeY {0.66f}; // the 2d raycaster version of camera plane
+
+	sf::Clock m_clock {sf::Clock()};
+	sf::Time m_fps;
 };
 
 }

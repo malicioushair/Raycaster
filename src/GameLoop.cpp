@@ -2,46 +2,15 @@
 #include <SFML/Window/Keyboard.hpp>
 
 #include "GameLoop.h"
+#include "Map.h"
 
 using namespace Raycaster;
-
-namespace {
-constexpr auto MAP_WIDTH = 24;
-constexpr auto MAP_HEIGHT = 24;
-
-int g_worldMap[MAP_WIDTH][MAP_HEIGHT] = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 4, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 4, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-										 {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
-
-} // namespace
 
 void GameLoop::Run()
 {
 	m_window.setFramerateLimit(60);
 
-	auto clock = sf::Clock();
-	sf::Time fps;
+
 
 	while (m_window.isOpen())
 	{
@@ -109,7 +78,7 @@ void GameLoop::Run()
 					side = 1;
 				}
 				// Check if ray has hit a wall
-				if (g_worldMap[mapX][mapY] > 0)
+				if (Map::g_worldMap[mapX][mapY] > 0)
 					hit = 1;
 			}
 
@@ -133,7 +102,7 @@ void GameLoop::Run()
 
 			// choose wall color
 			sf::Color color;
-			switch (g_worldMap[mapX][mapY])
+			switch (Map::g_worldMap[mapX][mapY])
 			{
 			case 1:
 				color = sf::Color::Red;
@@ -166,13 +135,14 @@ void GameLoop::Run()
 			m_window.draw(line, 2, sf::Lines);
 		}
 
-		fps = clock.getElapsedTime();
+		m_fps = m_clock.getElapsedTime();
 		// float fpsValue = 1000000 / fps.asMicroseconds();
-		clock.restart();
+		m_clock.restart();
 
-		const auto moveSpeed = fps.asSeconds() * 5.0f; // the constant value is in squares/second
-		const auto rotSpeed = fps.asSeconds() * 3.0f; // the constant value is in radians/second
+		const auto moveSpeed = m_fps.asSeconds() * 5.0f; // the constant value is in squares/second
+		const auto rotSpeed = m_fps.asSeconds() * 3.0f; // the constant value is in radians/second
 
+		// HANDLING KEYS!!!!!!!!!!!!
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 		{
 			// both camera direction and camera plane must be rotated
@@ -195,16 +165,16 @@ void GameLoop::Run()
 		}
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 		{
-			if (g_worldMap[static_cast<int>(m_posX + m_dirX * moveSpeed)][static_cast<int>(m_posY)] == false)
+			if (Map::g_worldMap[static_cast<int>(m_posX + m_dirX * moveSpeed)][static_cast<int>(m_posY)] == false)
 				m_posX += m_dirX * moveSpeed;
-			if (g_worldMap[static_cast<int>(m_posX)][static_cast<int>(m_posY + m_dirY * moveSpeed)] == false)
+			if (Map::g_worldMap[static_cast<int>(m_posX)][static_cast<int>(m_posY + m_dirY * moveSpeed)] == false)
 				m_posY += m_dirY * moveSpeed;
 		}
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 		{
-			if (g_worldMap[static_cast<int>(m_posX - m_dirX * moveSpeed)][static_cast<int>(m_posY)] == false)
+			if (Map::g_worldMap[static_cast<int>(m_posX - m_dirX * moveSpeed)][static_cast<int>(m_posY)] == false)
 				m_posX -= m_dirX * moveSpeed;
-			if (g_worldMap[static_cast<int>(m_posX)][static_cast<int>(m_posY - m_dirY * moveSpeed)] == false)
+			if (Map::g_worldMap[static_cast<int>(m_posX)][static_cast<int>(m_posY - m_dirY * moveSpeed)] == false)
 				m_posY -= m_dirY * moveSpeed;
 		}
 
